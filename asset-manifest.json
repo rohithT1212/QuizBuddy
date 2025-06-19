@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/QuizBuddy/static/css/main.a716eef1.chunk.css",
-    "main.js": "/QuizBuddy/static/js/main.b774ee2c.chunk.js",
-    "main.js.map": "/QuizBuddy/static/js/main.b774ee2c.chunk.js.map",
+    "main.js": "/QuizBuddy/static/js/main.4c8d619d.chunk.js",
+    "main.js.map": "/QuizBuddy/static/js/main.4c8d619d.chunk.js.map",
     "runtime-main.js": "/QuizBuddy/static/js/runtime-main.d67f21fd.js",
     "runtime-main.js.map": "/QuizBuddy/static/js/runtime-main.d67f21fd.js.map",
     "static/css/2.e434f813.chunk.css": "/QuizBuddy/static/css/2.e434f813.chunk.css",
-    "static/js/2.f15a404b.chunk.js": "/QuizBuddy/static/js/2.f15a404b.chunk.js",
-    "static/js/2.f15a404b.chunk.js.map": "/QuizBuddy/static/js/2.f15a404b.chunk.js.map",
+    "static/js/2.95ca096e.chunk.js": "/QuizBuddy/static/js/2.95ca096e.chunk.js",
+    "static/js/2.95ca096e.chunk.js.map": "/QuizBuddy/static/js/2.95ca096e.chunk.js.map",
     "index.html": "/QuizBuddy/index.html",
     "static/css/2.e434f813.chunk.css.map": "/QuizBuddy/static/css/2.e434f813.chunk.css.map",
     "static/css/main.a716eef1.chunk.css.map": "/QuizBuddy/static/css/main.a716eef1.chunk.css.map",
-    "static/js/2.f15a404b.chunk.js.LICENSE.txt": "/QuizBuddy/static/js/2.f15a404b.chunk.js.LICENSE.txt",
+    "static/js/2.95ca096e.chunk.js.LICENSE.txt": "/QuizBuddy/static/js/2.95ca096e.chunk.js.LICENSE.txt",
     "static/media/SignUp.module.css": "/QuizBuddy/static/media/tik.02de272a.svg",
     "static/media/email.0accdc73.svg": "/QuizBuddy/static/media/email.0accdc73.svg",
     "static/media/password.b5ad9e0e.svg": "/QuizBuddy/static/media/password.b5ad9e0e.svg",
@@ -20,8 +20,8 @@
   "entrypoints": [
     "static/js/runtime-main.d67f21fd.js",
     "static/css/2.e434f813.chunk.css",
-    "static/js/2.f15a404b.chunk.js",
+    "static/js/2.95ca096e.chunk.js",
     "static/css/main.a716eef1.chunk.css",
-    "static/js/main.b774ee2c.chunk.js"
+    "static/js/main.4c8d619d.chunk.js"
   ]
 }
