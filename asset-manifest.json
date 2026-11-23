@@ -1,27 +1,22 @@
 {
   "files": {
-    "main.css": "/QuizBuddy/static/css/main.a716eef1.chunk.css",
-    "main.js": "/QuizBuddy/static/js/main.4c8d619d.chunk.js",
-    "main.js.map": "/QuizBuddy/static/js/main.4c8d619d.chunk.js.map",
-    "runtime-main.js": "/QuizBuddy/static/js/runtime-main.d67f21fd.js",
-    "runtime-main.js.map": "/QuizBuddy/static/js/runtime-main.d67f21fd.js.map",
-    "static/css/2.e434f813.chunk.css": "/QuizBuddy/static/css/2.e434f813.chunk.css",
-    "static/js/2.95ca096e.chunk.js": "/QuizBuddy/static/js/2.95ca096e.chunk.js",
-    "static/js/2.95ca096e.chunk.js.map": "/QuizBuddy/static/js/2.95ca096e.chunk.js.map",
+    "main.css": "/QuizBuddy/static/css/main.bb6ac143.css",
+    "main.js": "/QuizBuddy/static/js/main.e2d2aa64.js",
+    "static/js/238.891a40b4.chunk.js": "/QuizBuddy/static/js/238.891a40b4.chunk.js",
+    "static/media/user.svg": "/QuizBuddy/static/media/user.7b8ea891ea289b003e47d5a0b63eb090.svg",
+    "static/media/email.svg": "/QuizBuddy/static/media/email.9342ad3632f2adfe359656c3f7591b7b.svg",
+    "static/media/close.svg": "/QuizBuddy/static/media/close.96841b052080d924b81a.svg",
+    "static/media/password.svg": "/QuizBuddy/static/media/password.3129520455eae697289bcb2d24d79634.svg",
     "index.html": "/QuizBuddy/index.html",
-    "static/css/2.e434f813.chunk.css.map": "/QuizBuddy/static/css/2.e434f813.chunk.css.map",
-    "static/css/main.a716eef1.chunk.css.map": "/QuizBuddy/static/css/main.a716eef1.chunk.css.map",
-    "static/js/2.95ca096e.chunk.js.LICENSE.txt": "/QuizBuddy/static/js/2.95ca096e.chunk.js.LICENSE.txt",
-    "static/media/SignUp.module.css": "/QuizBuddy/static/media/tik.02de272a.svg",
-    "static/media/email.0accdc73.svg": "/QuizBuddy/static/media/email.0accdc73.svg",
-    "static/media/password.b5ad9e0e.svg": "/QuizBuddy/static/media/password.b5ad9e0e.svg",
-    "static/media/user.f47683c7.svg": "/QuizBuddy/static/media/user.f47683c7.svg"
+    "static/media/logo.svg": "/QuizBuddy/static/media/logo.2fbc242cf90a2a2e2acc929ecd274f71.svg",
+    "static/media/check.svg": "/QuizBuddy/static/media/check.6b6350a4feeebacef223.svg",
+    "static/media/tik.svg": "/QuizBuddy/static/media/tik.02de272a9323ceb46038.svg",
+    "main.bb6ac143.css.map": "/QuizBuddy/static/css/main.bb6ac143.css.map",
+    "main.e2d2aa64.js.map": "/QuizBuddy/static/js/main.e2d2aa64.js.map",
+    "238.891a40b4.chunk.js.map": "/QuizBuddy/static/js/238.891a40b4.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/runtime-main.d67f21fd.js",
-    "static/css/2.e434f813.chunk.css",
-    "static/js/2.95ca096e.chunk.js",
-    "static/css/main.a716eef1.chunk.css",
-    "static/js/main.4c8d619d.chunk.js"
+    "static/css/main.bb6ac143.css",
+    "static/js/main.e2d2aa64.js"
   ]
 }
