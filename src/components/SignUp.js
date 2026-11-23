@@ -3,32 +3,22 @@ import React, { useEffect, useState } from "react";
 import userIcon from "../img/user.svg";
 import emailIcon from "../img/email.svg";
 import passwordIcon from "../img/password.svg";
+import logo from "../img/logo.svg";
 // Validate
 import { validate } from "./validate";
 // Styles
 import styles from "./SignUp.module.css";
 import "react-toastify/dist/ReactToastify.css";
 // Toast
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { notify } from "./toast";
 //
-import { Link } from "react-router-dom";
-// Axios
-import axios from "axios";
-import { gapi } from "gapi-script";
-import { GoogleSpreadsheet } from "google-spreadsheet";
-import bcrypt from "bcryptjs-react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 
 const SignUp = () => {
-  const baseUrl = process.env.REACT_APP_BASE_URL;
-  const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
-  const API_KEY = process.env.REACT_APP_API_KEY;
-  const SCOPES = process.env.REACT_APP_SCOPES;
-  const SPREADSHEET_ID = process.env.REACT_APP_SPREADSHEET_ID; // extracted from the URL
-  const SHEET_NAME = process.env.SHEET_NAME // or whatever your tab name is
-  const SHEET_ID = process.env.REACT_APP_SHEETID;
-  const CLIENT_EMAIL = process.env.REACT_APP_CLIENT_EMAIL;
-  const PRIVATE_KEY = process.env.REACT_APP_PRIVATE_KEY.replace(/\\n/g, '\n');
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
   const [data, setData] = useState({
     name: "",
@@ -57,37 +47,9 @@ const SignUp = () => {
     setTouched({ ...touched, [event.target.name]: true });
   };
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
-    if (!Object.keys(errors).length) {
-      debugger;
-      const sheetUrl = `${baseUrl}`;
-      const formData = {
-        Name: data.name,
-        Email: data.email.toLowerCase(),
-        Password: data.password,
-        Operation: "ADD USER",
-      };
-      var req = {
-        redirect: "follow",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-        //mode: "no-cors",
-        muteHttpExceptions: true,
-      };
-      const pushData = async () => {
-        await fetch(sheetUrl, req);
-      };
-      try {
-        pushData();
-        notify("User created successfully", "success");
-      } catch (error) {
-        notify("error", "error");
-      }
-    } else {
+    if (Object.keys(errors).length) {
       notify("Please Check fields again", "error");
       setTouched({
         name: true,
@@ -96,99 +58,26 @@ const SignUp = () => {
         confirmPassword: true,
         IsAccepted: false,
       });
+      return;
     }
-  };
 
-  const submitHandlerGapi = (event) => {
-    event.preventDefault();
-    if (!Object.keys(errors).length) {
-      debugger;
-      addRowToSheet([data.name,data.email.toLowerCase(),data.password]);
-    } else {
-      notify("Please Check fields again", "error");
-      setTouched({
-        name: true,
-        email: true,
-        password: true,
-        confirmPassword: true,
-        IsAccepted: false,
-      });
-    }
-  };
+    setSubmitting(true);
+    const { data: result, error } = await supabase.auth.signUp({
+      email: data.email.toLowerCase(),
+      password: data.password,
+      options: { data: { name: data.name.trim() } },
+    });
+    setSubmitting(false);
 
-  const submitHandlerGS = (event) => {
-    event.preventDefault();
-    if (!Object.keys(errors).length) {
-      debugger;
-      var salt = bcrypt.genSaltSync(10);
-      var hash = bcrypt.hashSync(data.password, salt);
-      const newRow = { Name: data.name, Email: data.email.toLowerCase(), Password:hash};
-      appendSpreadsheet (newRow);
+    if (error) {
+      notify(error.message, "error");
+    } else if (result.session) {
       notify("User created successfully", "success");
+      navigate("/modules");
     } else {
-      notify("Please Check fields again", "error");
-      setTouched({
-        name: true,
-        email: true,
-        password: true,
-        confirmPassword: true,
-        IsAccepted: false,
-      });
-    }
-  };
-
-  const appendSpreadsheet = async (row) => {
-    debugger;
-    const doc = new GoogleSpreadsheet(SPREADSHEET_ID);
-    try {
-      await doc.useServiceAccountAuth({
-        client_email: CLIENT_EMAIL,
-        private_key: PRIVATE_KEY
-      });
-      // loads document properties and worksheets
-      await doc.loadInfo();
-      debugger;
-      const sheet = doc.sheetsById[SHEET_ID];
-      const result = await sheet.addRow(row);
-    } catch (e) {
-      console.error('Error: ', e);
-    }
-  };
-
-
-  useEffect(() => {
-    const initClient = () => {
-      gapi.client.init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        discoveryDocs: [
-          "https://sheets.googleapis.com/$discovery/rest?version=v4",
-        ],
-        scope: SCOPES,
-      });
-    };
-    gapi.load("client:auth2", initClient);
-  }, []);
-
-  const signIn = () => {
-    gapi.auth2.getAuthInstance().signIn();
-  };
-
-  const addRowToSheet = async (dataRow) => {
-    try {
-      gapi.auth2.getAuthInstance().signIn();
-      const response = await gapi.client.sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A1`,
-        valueInputOption: "USER_ENTERED",
-        insertDataOption: "INSERT_ROWS",
-        resource: {
-          values: [dataRow], // example: ['John Doe', 'john@example.com']
-        },
-      });
-      notify("User created successfully", "success");
-    } catch (err) {
-      console.error("Unable to create user:", err);
+      // Email confirmation is enabled in Supabase: no session until confirmed.
+      notify("Account created. Check your email to confirm, then sign in.", "success");
+      navigate("/login");
     }
   };
 
@@ -196,9 +85,10 @@ const SignUp = () => {
     <div className={styles.container}>
       <form
         className={styles.formLogin}
-        onSubmit={submitHandlerGS}
+        onSubmit={submitHandler}
         autoComplete="off"
       >
+        <img src={logo} alt="QuizBuddy" className={styles.logo} />
         <h2>Sign Up</h2>
         <div>
           <div
@@ -236,7 +126,7 @@ const SignUp = () => {
             }
           >
             <input
-              type="text"
+              type="email"
               name="email"
               value={data.email}
               placeholder="E-mail"
@@ -267,7 +157,7 @@ const SignUp = () => {
               placeholder="Password"
               onChange={changeHandler}
               onFocus={focusHandler}
-              autoComplete="off"
+              autoComplete="new-password"
             />
             <img src={passwordIcon} alt="" />
           </div>
@@ -282,8 +172,6 @@ const SignUp = () => {
                 ? styles.unCompleted
                 : !errors.confirmPassword && touched.confirmPassword
                 ? styles.completed
-                : !errors.confirmPassword && touched.confirmPassword
-                ? styles.completed
                 : undefined
             }
           >
@@ -294,7 +182,7 @@ const SignUp = () => {
               placeholder="Confirm Password"
               onChange={changeHandler}
               onFocus={focusHandler}
-              autoComplete="off"
+              autoComplete="new-password"
             />
             <img src={passwordIcon} alt="" />
           </div>
@@ -319,7 +207,9 @@ const SignUp = () => {
           )}
         </div>
         <div>
-          <button type="submit">Create Account</button>
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Creating..." : "Create Account"}
+          </button>
           <span
             style={{
               color: "#a29494",

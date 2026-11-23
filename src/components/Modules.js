@@ -1,130 +1,100 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "./SignUp.module.css";
-import { ToastContainer, toast } from "react-toastify";
-import { GoogleSpreadsheet } from "google-spreadsheet";
-import Test from "./Test";
-import { Link,useNavigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { notify } from "./toast";
+import logo from "../img/logo.svg";
+import {
+  MODULES_UPDATED,
+  SUBSCRIPTIONS_UPDATED,
+  fetchModules,
+  fetchSubscribedIds,
+  subscribeToModule,
+} from "../quizApi";
 
-
-
+// Home page: modules the user has not subscribed to yet. Subscribed ones live in the side panel.
 const Modules = () => {
-  const SPREADSHEET_ID = process.env.REACT_APP_QBANK_SHEET_ID; // extracted from the URL
-  const CLIENT_EMAIL = process.env.REACT_APP_CLIENT_EMAIL;
-  const PRIVATE_KEY = process.env.REACT_APP_PRIVATE_KEY.replace(/\\n/g, '\n');
-  const navigate = useNavigate();
+  const [modules, setModules] = useState([]);
+  const [subscribed, setSubscribed] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState(null);
 
+  const loadSubscriptions = useCallback(async () => {
+    try {
+      setSubscribed(await fetchSubscribedIds());
+    } catch (e) {
+      notify("Could not load your subscriptions", "error");
+    }
+  }, []);
 
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [touched, setTouched] = useState({});
-  const [testModules, setTestModules] = useState([]);
-  const [sheetData, setSheetData] = useState([]);
-  const [selectedSheetName, setSelectedSheetName] = useState('');
-  const docRef = useRef(null);
+  const loadModules = useCallback(async () => {
+    try {
+      setModules(await fetchModules());
+    } catch (e) {
+      notify("Could not load modules", "error");
+    }
+  }, []);
 
   useEffect(() => {
-        // call api or anything
-        fetchSheets();
-        console.log("loaded");
-     },[]);
+    (async () => {
+      await Promise.all([loadModules(), loadSubscriptions()]);
+      setLoading(false);
+    })();
+  }, [loadModules, loadSubscriptions]);
 
-  const fetchSheets = async () => {
+  // Unsubscribing from the side panel (or an admin editing modules) refreshes this list.
+  useEffect(() => {
+    window.addEventListener(SUBSCRIPTIONS_UPDATED, loadSubscriptions);
+    window.addEventListener(MODULES_UPDATED, loadModules);
+    return () => {
+      window.removeEventListener(SUBSCRIPTIONS_UPDATED, loadSubscriptions);
+      window.removeEventListener(MODULES_UPDATED, loadModules);
+    };
+  }, [loadSubscriptions, loadModules]);
+
+  const subscribe = async (module) => {
+    setBusyId(module.id);
     try {
-      debugger;
-      const doc =  await authenticateAndLoadDoc();
-      const sheets = Object.values(doc.sheetsById).map(sheet => ({
-      Name: sheet.title,
-      Id: sheet.index,
-    }));
-      setTestModules(sheets);
-
-      console.log(testModules1);
-
+      await subscribeToModule(module.id);
+      notify(`Subscribed to ${module.title}. Find it in the side panel.`, "success");
     } catch (e) {
-      console.error('Error: ', e);
-    }  
-  };
-
-  const authenticateAndLoadDoc = async () => {
-    if (!docRef.current) {
-      const doc = new GoogleSpreadsheet(SPREADSHEET_ID);
-      try{
-        await doc.useServiceAccountAuth({
-        client_email: CLIENT_EMAIL,
-        private_key: PRIVATE_KEY
-      });
-      await doc.loadInfo();
-      docRef.current = doc;
-      }
-      catch(e){
-        console.error('Error: ', e);
-      }
+      notify("Could not subscribe. Please try again.", "error");
     }
-    return docRef.current;
+    setBusyId(null);
   };
 
-  const fetchSheetRows = async(moduleId,moduleName) => {
-    try {
-      debugger;
-      const doc =  await authenticateAndLoadDoc();
-      const sheet = doc.sheetsByIndex[moduleId];
-
-      const rows = await sheet.getRows();
-      const data = rows.map((row,index) => ({
-      row: row._rawData,
-      id: index,
-    }));
-      debugger;
-      console.log(data);
-      setSheetData(data);
-      setSelectedSheetName(moduleName);
-      navigate("/test",{ state: {
-            sheetName: moduleName,
-            data: data,
-      }});
-
-    } catch (e) {
-      console.error('Error: ', e);
-    }  
-  }
-
-  const testModules1 = [
-    { id: 1, name: "Module 1", description: "History" },
-    { id: 2, name: "Module 2", description: "Biology" },
-    { id: 3, name: "Module 3", description: "Physics" },
-    { id: 4, name: "Module 4", description: "Chemistry" },
-    { id: 5, name: "Module 5", description: "English" },
-];
+  const available = modules.filter((m) => !subscribed.has(m.id));
 
   return (
     <div className={styles.container}>
-      <form
-        className={styles.formLogin}
-        autoComplete="off"
-      >
-        <h2>Available Test Modules</h2>
+      <form className={styles.formLogin} autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+        <img src={logo} alt="QuizBuddy" className={styles.logo} />
+        <h2>Available Modules</h2>
         <div>
-            {testModules.map((module) => (
-            <div key={module.Id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
-                <h2 className="text-xl font-semibold">{module.Name}</h2>
-                <button type="button" onClick ={() => fetchSheetRows(module.Id,module.Name)} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Start Test
-                </button>
-                <br /> <br />      
+          {loading && <p>Loading...</p>}
+          {!loading && modules.length === 0 && <p>No modules yet.</p>}
+          {!loading && modules.length > 0 && available.length === 0 && (
+            <p>You've subscribed to every module. Pick one from the side panel to start a test.</p>
+          )}
+          {available.map((module) => (
+            <div key={module.id} className={styles.card}>
+              <h2 className={styles.cardTitle}>{module.title}</h2>
+              {module.description && <p>{module.description}</p>}
+              <button
+                type="button"
+                onClick={() => subscribe(module)}
+                disabled={busyId === module.id}
+                className={styles.button}
+              >
+                {busyId === module.id ? "Subscribing..." : "Subscribe"}
+              </button>
             </div>
-        ))}
+          ))}
         </div>
-
       </form>
       <ToastContainer />
-
     </div>
-    
-    );
+  );
 };
 
 export default Modules;

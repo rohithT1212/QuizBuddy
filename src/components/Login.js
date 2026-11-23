@@ -1,113 +1,101 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import emailIcon from "../img/email.svg";
 import passwordIcon from "../img/password.svg";
+import logo from "../img/logo.svg";
 import styles from "./SignUp.module.css";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { notify } from "./toast";
-import { Link,useNavigate } from "react-router-dom";
-import axios from "axios";
-import { GoogleSpreadsheet } from "google-spreadsheet";
-import bcrypt from "bcryptjs-react";
+import { validate } from "./validate";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+
+// Turn Supabase auth errors into messages a user can act on.
+const friendlyAuthError = (error) => {
+  const code = error.code || "";
+  const message = (error.message || "").toLowerCase();
+
+  if (code === "email_not_confirmed" || message.includes("email not confirmed")) {
+    return "Your email isn't confirmed yet. Check your inbox for the confirmation link.";
+  }
+  if (code === "invalid_credentials" || message.includes("invalid login credentials")) {
+    return "Incorrect email or password. If you haven't created an account yet, sign up first.";
+  }
+  if (code === "over_request_rate_limit" || error.status === 429) {
+    return "Too many attempts. Please wait a minute and try again.";
+  }
+  if (message.includes("invalid api key") || message.includes("apikey")) {
+    return "App configuration error (invalid Supabase key). Check your .env file.";
+  }
+  if (error.name === "AuthRetryableFetchError" || message.includes("failed to fetch")) {
+    return "Can't reach the server. Check your internet connection and the Supabase URL.";
+  }
+  return error.message || "Something went wrong. Please try again.";
+};
 
 const Login = () => {
-  const baseUrl = process.env.REACT_APP_BASE_URL;
-  const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
-  const API_KEY = process.env.REACT_APP_API_KEY;
-  const SCOPES = process.env.REACT_APP_SCOPES;
-  const SPREADSHEET_ID = process.env.REACT_APP_SPREADSHEET_ID; // extracted from the URL
-  const SHEET_NAME = process.env.SHEET_NAME // or whatever your tab name is
-  const SHEET_ID = process.env.REACT_APP_SHEETID;
-  const CLIENT_EMAIL = process.env.REACT_APP_CLIENT_EMAIL;
-  const PRIVATE_KEY = process.env.REACT_APP_PRIVATE_KEY.replace(/\\n/g, '\n');
   const navigate = useNavigate();
-
-
+  const [submitting, setSubmitting] = useState(false);
 
   const [data, setData] = useState({
     email: "",
     password: "",
   });
-
+  const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  const chaeckData = async (obj) => {
-    debugger;
-    const baseUrl = process.env.REACT_APP_BASE_URL;
-    const sheetUrl = `${baseUrl}`;
-    const formData = {
-      Email: data.email.toLowerCase(),
-      Password: data.password,
-      Operation: "USER LOGIN",
-    };
-    var req = {
-      redirect: "follow",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-      //mode: "no-cors",
-      muteHttpExceptions: true,
-    };
-    const api = await fetch(sheetUrl, req);
-    const res = await api.json();
-    console.log(res);
-    toast.promise(api, {
-      pending: "Loading your data...",
-      success: false,
-      error: "Something went wrong!",
-    });
-  };
-
-  const checkData = async (obj) => {
-    debugger;
-    const doc = new GoogleSpreadsheet(SPREADSHEET_ID);
-    try {
-      await doc.useServiceAccountAuth({
-        client_email: CLIENT_EMAIL,
-        private_key: PRIVATE_KEY
-      });
-      // loads document properties and worksheets
-      await doc.loadInfo();
-      debugger;
-      const sheet = doc.sheetsById[SHEET_ID];
-      const rows = await sheet.getRows();
-
-      const userRow = rows.find(row => row.Email === data.email.toLowerCase());
-
-      if (!userRow) {
-        notify("User not found", "error");
-      }
-
-      const isMatch = bcrypt.compareSync(data.password, userRow.Password);
-      if (isMatch) {
-        notify("Successful login", "success");
-        navigate("/modules");
-      } else {
-        notify("Invalid Username or password", "error");
-      }
-    } catch (e) {
-      console.error('Error: ', e);
-    }  
-  };
+  useEffect(() => {
+    setErrors(validate(data, "login"));
+  }, [data]);
 
   const changeHandler = (event) => {
-    if (event.target.name === "IsAccepted") {
-      setData({ ...data, [event.target.name]: event.target.checked });
-    } else {
-      setData({ ...data, [event.target.name]: event.target.value });
-    }
+    setData({ ...data, [event.target.name]: event.target.value });
   };
 
-  const focusHandler = (event) => {
+  // Show a field's error once the user has left it.
+  const blurHandler = (event) => {
     setTouched({ ...touched, [event.target.name]: true });
   };
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
-    checkData(data);
+
+    if (Object.keys(errors).length) {
+      setTouched({ email: true, password: true });
+      notify("Please fix the highlighted fields", "error");
+      return;
+    }
+
+    if (!process.env.REACT_APP_SUPABASE_URL || !process.env.REACT_APP_SUPABASE_ANON_KEY) {
+      notify("App configuration error: Supabase URL or key is missing in .env", "error");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      });
+      if (error) {
+        notify(friendlyAuthError(error), "error");
+      } else {
+        notify("Successful login", "success");
+        navigate("/modules");
+      }
+    } catch (e) {
+      notify(friendlyAuthError(e), "error");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const fieldClass = (name) =>
+    errors[name] && touched[name]
+      ? styles.unCompleted
+      : !errors[name] && touched[name]
+      ? styles.completed
+      : undefined;
 
   return (
     <div className={styles.container}>
@@ -115,39 +103,49 @@ const Login = () => {
         className={styles.formLogin}
         onSubmit={submitHandler}
         autoComplete="off"
+        noValidate
       >
+        <img src={logo} alt="QuizBuddy" className={styles.logo} />
         <h2>Sign In</h2>
         <div>
-          <div>
+          <div className={fieldClass("email")}>
             <input
-              type="text"
+              type="email"
               name="email"
               value={data.email}
               placeholder="E-mail"
               onChange={changeHandler}
-              onFocus={focusHandler}
-              autoComplete="off"
+              onBlur={blurHandler}
+              autoComplete="email"
             />
             <img src={emailIcon} alt="" />
           </div>
+          {errors.email && touched.email && (
+            <span className={styles.error}>{errors.email}</span>
+          )}
         </div>
         <div>
-          <div>
+          <div className={fieldClass("password")}>
             <input
               type="password"
               name="password"
               value={data.password}
               placeholder="Password"
               onChange={changeHandler}
-              onFocus={focusHandler}
-              autoComplete="off"
+              onBlur={blurHandler}
+              autoComplete="current-password"
             />
             <img src={passwordIcon} alt="" />
           </div>
+          {errors.password && touched.password && (
+            <span className={styles.error}>{errors.password}</span>
+          )}
         </div>
 
         <div>
-          <button type="submit">Login</button>
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Signing in..." : "Login"}
+          </button>
           <span
             style={{
               color: "#a29494",

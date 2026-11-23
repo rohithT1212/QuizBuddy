@@ -1,0 +1,255 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  min-width: 0; /* lets wide content shrink instead of overflowing */
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--secondary-color);
+  padding: 16px 12px;
+  overflow: hidden;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--main-color);
+  padding: 0 4px 12px;
+}
+
+.brand img {
+  width: 32px;
+  height: 32px;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.link {
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text);
+}
+
+.link:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.link[aria-current="page"] {
+  background: var(--accent-soft);
+  color: var(--main-color-hover);
+  font-weight: 600;
+}
+
+.heading {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 10px;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.module {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.moduleRow {
+  position: relative;
+}
+
+.moduleRow .module {
+  padding-right: 32px; /* room for the unsubscribe button */
+}
+
+.remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  line-height: 1;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.moduleRow:hover .remove,
+.remove:focus {
+  opacity: 1;
+}
+
+.remove:hover {
+  background: var(--secondary-color);
+  color: var(--text);
+}
+
+/* touch screens have no hover: keep the button visible */
+@media (hover: none) {
+  .remove {
+    opacity: 1;
+  }
+}
+
+.module:hover {
+  background: var(--accent-soft);
+}
+
+.module:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.module.active {
+  border-color: var(--main-color);
+  background: var(--accent-soft);
+}
+
+.moduleTitle {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.moduleMeta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.bar {
+  display: block;
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: var(--secondary-color);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--main-color);
+}
+
+.muted {
+  color: var(--muted);
+  padding: 8px 10px;
+}
+
+.logout {
+  margin-top: 8px;
+  min-height: 40px;
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.logout:hover {
+  border-color: var(--main-color);
+}
+
+/* Mobile: the panel becomes a slide-in drawer opened by a menu button. */
+.menuBtn {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--box-shadow);
+  cursor: pointer;
+}
+
+.menuBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .menuBtn {
+    display: flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1100;
+    max-width: 85vw;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  /* keep page content clear of the fixed menu and theme buttons */
+  .main {
+    padding-top: 56px;
+  }
+}

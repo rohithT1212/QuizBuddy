@@ -1,0 +1,82 @@
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.actions button,
+.small {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.actions button:hover {
+  border-color: var(--main-color);
+}
+
+.danger {
+  color: #e5484d !important;
+}
+
+.hint,
+.meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 4px 0 8px;
+}
+
+.panel {
+  border-color: var(--main-color);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.field input,
+.field textarea,
+.field select,
+.panel select {
+  padding: 10px;
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 12px 0;
+}
+
+.preview {
+  padding: 8px 0;
+  border-top: 1px solid var(--secondary-color);
+}
+
+.skipList {
+  margin: 8px 0 0 18px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
